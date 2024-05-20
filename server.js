@@ -4,6 +4,21 @@ const socketIo = require('socket.io');
 const multer = require('multer');
 const path = require('path');
 
+
+// Get the local IP address
+const os = require('os');
+const interfaces = os.networkInterfaces();
+let localIp = '127.0.0.1';
+
+for (let interfaceName in interfaces) {
+    for (let interface of interfaces[interfaceName]) {
+        if (interface.family === 'IPv4' && !interface.internal) {
+            localIp = interface.address;
+            break;
+        }
+    }
+}
+
 // Initialize Express
 const app = express();
 const server = http.createServer(app);
@@ -40,7 +55,19 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = process.env.PORT || 3456;
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+
+
+import('open').then(openModule => {
+    const open = openModule.default; // Access the 'open' function from the imported module
+
+    // Your server setup code here...
+
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, localIp, () => {
+        const url = `http://${localIp}:${PORT}`;
+        console.log(`Server is running on ${url}`);
+        open(url); // Open the URL in the default web browser
+    });
+}).catch(error => {
+    console.error('Error loading open module:', error);
 });
